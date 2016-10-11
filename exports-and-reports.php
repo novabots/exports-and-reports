@@ -15,11 +15,11 @@ define( 'EXPORTS_REPORTS_URL', plugin_dir_url( __FILE__ ) );
 define( 'EXPORTS_REPORTS_DIR', plugin_dir_path( __FILE__ ) );
 
 if ( ! defined( 'WP_ADMIN_UI_EXPORT_URL' ) ) {
-	define( 'WP_ADMIN_UI_EXPORT_URL', WP_CONTENT_URL . '/exports' );
+	define( 'WP_ADMIN_UI_EXPORT_URL', WP_CONTENT_URL . '/uploads/exportsandreports' );
 }
 
 if ( ! defined( 'WP_ADMIN_UI_EXPORT_DIR' ) ) {
-	define( 'WP_ADMIN_UI_EXPORT_DIR', WP_CONTENT_DIR . '/exports' );
+	define( 'WP_ADMIN_UI_EXPORT_DIR', WP_CONTENT_DIR . '/uploads/exportsandreports' );
 }
 
 add_action( 'admin_init', 'exports_reports_init' );
@@ -225,7 +225,7 @@ function exports_reports_settings() {
 		<h2>Exports and Reports - Settings</h2>
 		<?php
 		if ( isset( $_POST[ 'clear' ] ) || isset( $_POST[ 'reset' ] ) ) {
-			exports_reports_cleanup( true );
+            exports_reports_cleanup( true );
 			?>
 			<div id="message" class="updated fade">
 				<p>Your Exports directory has been cleaned up and all export files have been removed.</p></div>
@@ -1067,8 +1067,24 @@ function exports_reports_schedule_cleanup() {
 	return wp_schedule_event( $timestamp, $recurrence, 'exports_reports_cleanup', array() );
 }
 
-function exports_reports_cleanup( $full = false ) {
-    WP_Filesystem();
+function exports_reports_cleanup($full = false)
+{
+    require_once EXPORTS_REPORTS_DIR . 'wp-admin-ui/Admin.class.php';
+    $admin = new WP_Admin_UI();
+    if (!function_exists('request_filesystem_credentials')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+    $url = wp_nonce_url('plugins.php?page=exports-reports', 'exportsreports_nonce');
+    if (false === ($credentials = request_filesystem_credentials($url, '', false, WP_CONTENT_DIR . '/uploads', null))) {
+        $admin->error("<strong>Error:</strong> Your hosting configuration does not allow access to add files to your site.");
+        return false;
+    }
+    if (!WP_Filesystem($credentials)) {
+        request_filesystem_credentials($url, '', true, WP_CONTENT_DIR . '/uploads', null); //Failed to connect, Error and request again
+        $admin->error("<strong>Error:</strong> Your hosting configuration does not allow access to add files to your site.");
+        return false;
+    }
+
 	global $wpdb;
 
 	if ( $full ) {

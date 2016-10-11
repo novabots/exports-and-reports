@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'WP_ADMIN_UI_EXPORT_DIR' ) ) {
-	define( 'WP_ADMIN_UI_EXPORT_DIR', WP_CONTENT_DIR . '/exports' );
+	define( 'WP_ADMIN_UI_EXPORT_DIR', WP_CONTENT_DIR . '/uploads/exportsandreports' );
 }
 
 global $wpdb;
@@ -1129,21 +1129,20 @@ class WP_Admin_UI
         }
         return $value;
     }
-    function export ()
+
+    public function export()
     {
         $this->do_hook('pre_export');
-        require_once(ABSPATH . 'wp-admin/includes/file.php');
-        $url = explode('/',$_SERVER['REQUEST_URI']);
-        $url = array_reverse($url);
-        $url = $url[0];
-        if(false===($credentials=request_filesystem_credentials($url,'',false,ABSPATH)))
-        {
+        if (!function_exists('request_filesystem_credentials')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        $url = wp_nonce_url('plugins.php?page=exports-reports', 'exportsreports_nonce');
+        if (false === ($credentials = request_filesystem_credentials($url, '', false, WP_CONTENT_DIR . '/uploads', null))) {
             $this->error("<strong>Error:</strong> Your hosting configuration does not allow access to add files to your site.");
             return false;
         }
-        if(!WP_Filesystem($credentials,ABSPATH))
-        {
-            request_filesystem_credentials($url,'',true,ABSPATH); //Failed to connect, Error and request again
+        if (!WP_Filesystem($credentials)) {
+            request_filesystem_credentials($url, '', true, WP_CONTENT_DIR . '/uploads', null); //Failed to connect, Error and request again
             $this->error("<strong>Error:</strong> Your hosting configuration does not allow access to add files to your site.");
             return false;
         }

@@ -12,11 +12,11 @@ if ( !is_object( $wpdb ) ) {
 }
 
 if ( ! defined( 'WP_ADMIN_UI_EXPORT_URL' ) ) {
-	define( 'WP_ADMIN_UI_EXPORT_URL', WP_CONTENT_URL . '/exports' );
+	define( 'WP_ADMIN_UI_EXPORT_URL', WP_CONTENT_URL . '/uploads/exportsandreports' );
 }
 
 if ( ! defined( 'WP_ADMIN_UI_EXPORT_DIR' ) ) {
-	define( 'WP_ADMIN_UI_EXPORT_DIR', WP_CONTENT_DIR . '/exports' );
+	define( 'WP_ADMIN_UI_EXPORT_DIR', WP_CONTENT_DIR . '/uploads/exportsandreports' );
 }
 
 if ( ! function_exists( 'is_plugin_active' ) || ! is_plugin_active( dirname( __FILE__ ) . '/exports-and-reports.php' ) ) {
